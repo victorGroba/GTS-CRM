@@ -6,9 +6,9 @@ services:
     container_name: gts-crm-app
     restart: always
     ports:
-      # MAPEAMENTO SEGURO: A porta 3005 atende sua VPS e leva internamente para a 3000 do app.
-      # Se a porta 3005 estiver ocupada na VPS, mude o "3005" para "3006", "3007", etc.
-      - "3005:3000"
+      # MAPEAMENTO SEGURO: A porta 3006 atende sua VPS e leva internamente para a 3000 do app.
+      # A porta 3005 já estava ocupada pelo projeto cdl.
+      - "3006:3000"
     env_file:
       - .env
     # Se você já tem um banco Postgres rodando em outro container na mesma VPS,

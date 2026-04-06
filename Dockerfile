@@ -6,14 +6,15 @@ WORKDIR /app
 # Copiar os arquivos de dependências
 COPY package.json package-lock.json* ./
 
+# CRUCIAL: Copiar a pasta prisma ANTES do npm install
+# porque o prisma generate roda automaticamente pós-instalação!
+COPY prisma ./prisma
+
 # Instalar as dependências do projeto
 RUN npm install
 
 # Copiar o resto do código da aplicação
 COPY . .
-
-# Gerar o Prisma Client
-RUN npx prisma generate
 
 # Fazer o Build da aplicação Next.js
 RUN npm run build
