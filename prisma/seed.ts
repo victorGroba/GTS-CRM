@@ -14,13 +14,14 @@ async function main() {
     },
   })
 
-  const tenant2 = await prisma.tenant.upsert({
-    where: { id: 't2' },
+  // Criar o Super Tenant do Dono do SaaS
+  const gtTenant = await prisma.tenant.upsert({
+    where: { id: 'grobatech' },
     update: {},
     create: {
-      id: 't2',
-      name: 'Stark Industries',
-      apiToken: 'stark-webhook-token-2024',
+      id: 'grobatech',
+      name: 'Groba Tech',
+      apiToken: 'groba-webhook-token-vip',
     },
   })
 
@@ -58,11 +59,11 @@ async function main() {
     update: {},
     create: {
       id: 'u3',
-      tenantId: 't2',
-      name: 'Tony Stark',
-      email: 'tony@stark.com',
-      password: '123456',
-      role: 'ADMIN',
+      tenantId: 'grobatech',
+      name: 'Equipe Groba',
+      email: 'team@grobatech.com',
+      password: '123',
+      role: 'VENDEDOR',
     },
   })
 
@@ -216,9 +217,24 @@ async function main() {
     })
   }
 
+  // Usuário Master Grobatech
+  await prisma.user.upsert({
+    where: { id: 'admin-grobatech' },
+    update: {},
+    create: {
+      id: 'admin-grobatech',
+      tenantId: 'grobatech',
+      name: 'Victor Groba (CEO)',
+      email: 'admin@grobatech.online',
+      password: 'Jvfg2409@',
+      role: 'ADMIN',
+      avatarUrl: 'https://img.usecurling.com/ppl/thumbnail?gender=male&seed=42',
+    },
+  })
+
   console.log('Seed completed successfully!')
   console.log('API Token for Acme Corp:', tenant1.apiToken)
-  console.log('API Token for Stark Industries:', tenant2.apiToken)
+  console.log('API Token for GrobaTech SaaS:', gtTenant.apiToken)
 }
 
 main()
