@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  VENDEDOR
+}
+
+enum DealStatus {
+  OPEN
+  WON
+  LOST
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  apiToken  String?  @unique
+  evolutionApiUrl String?
+  evolutionApiKey String?
+  whatsappInstance String?
+  whatsappConnected Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  users    User[]
+  contacts Contact[]
+  stages   Stage[]
+  deals    Deal[]
+  notes    Note[]
+  messages Message[]
+  stageAutomations StageAutomation[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  email     String   @unique
+  password  String   @default("")
+  role      Role     @default(VENDEDOR)
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deals  Deal[] @relation("AssignedDeals")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  email     String
+  phone     String   @default("")
+  company   String   @default("")
+  source    String?
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deals    Deal[]
+  notes    Note[]
+  messages Message[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId, phone])
+}
+
+model Stage {
+  id       String @id @default(cuid())
+  tenantId String
+  name     String
+  order    Int
+  color    String
+
+  tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deals     Deal[]
+  automation StageAutomation?
+
+  @@unique([tenantId, order])
+}
+
+model Deal {
+  id                String     @id @default(cuid())
+  tenantId          String
+  title             String
+  value             Float      @default(0)
+  stageId           String
+  contactId         String
+  assignedUserId    String
+  status            DealStatus @default(OPEN)
+  source            String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  expectedCloseDate DateTime?
+
+  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stage    Stage   @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  contact  Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignee User    @relation("AssignedDeals", fields: [assignedUserId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  tenantId  String
+  contactId String
+  content   String
+  createdAt DateTime @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  tenantId  String
+  contactId String
+  content   String
+  isFromMe  Boolean  @default(false)
+  messageId String?  @unique
+  status    String   @default("RECEIVED")
+  createdAt DateTime @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+model StageAutomation {
+  id          String   @id @default(cuid())
+  tenantId    String
+  stageId     String   @unique
+  webhookUrl  String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stage       Stage    @relation(fields: [stageId], references: [id], onDelete: Cascade)
+}

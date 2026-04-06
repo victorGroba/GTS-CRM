@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  gts-crm:
+    build: .
+    container_name: gts-crm-app
+    restart: always
+    ports:
+      # MAPEAMENTO SEGURO: A porta 3005 atende sua VPS e leva internamente para a 3000 do app.
+      # Se a porta 3005 estiver ocupada na VPS, mude o "3005" para "3006", "3007", etc.
+      - "3005:3000"
+    env_file:
+      - .env
+    # Se você já tem um banco Postgres rodando em outro container na mesma VPS,
+    # Você terá que usar o IP interno / nome da rede, ou apontar o DATABASE_URL lá no .env da VPS.
