@@ -1,15 +1,33 @@
 version: '3.8'
 
 services:
+  # BANCO DE DADOS EXCLUSIVO PRO CRM (À Prova de falhas e de firewall)
+  gts-crm-db:
+    image: postgres:15-alpine
+    container_name: gts-crm-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password_hyper_secreta_gts
+      POSTGRES_DB: gts_crm
+    volumes:
+      - gts-db-data:/var/lib/postgresql/data
+    # Usando porta escondida na rede interna pra não bater com seu outro postgres da VPS
+    expose:
+      - "5432"
+
   gts-crm:
     build: .
     container_name: gts-crm-app
     restart: always
     ports:
-      # MAPEAMENTO SEGURO: A porta 3006 atende sua VPS e leva internamente para a 3000 do app.
-      # A porta 3005 já estava ocupada pelo projeto cdl.
       - "3006:3000"
+    depends_on:
+      - gts-crm-db
     env_file:
       - .env
     # Se você já tem um banco Postgres rodando em outro container na mesma VPS,
     # Você terá que usar o IP interno / nome da rede, ou apontar o DATABASE_URL lá no .env da VPS.
+
+volumes:
+  gts-db-data:
