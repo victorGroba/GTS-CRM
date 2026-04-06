@@ -3,6 +3,9 @@ FROM node:20-alpine
 # Definir o diretório de trabalho no container
 WORKDIR /app
 
+# Instalar o OpenSSL requerimento absoluto do motor do Prisma no Linux Alpine
+RUN apk add --no-cache openssl
+
 # Copiar os arquivos de dependências
 COPY package.json package-lock.json* ./
 
