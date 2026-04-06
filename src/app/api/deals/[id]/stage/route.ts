@@ -4,7 +4,7 @@ import { triggerStageAutomation } from '@/lib/automation'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { stageId, tenantId, fromStageId } = await request.json()
@@ -13,7 +13,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Faltam parâmetros requiridos (stageId, tenantId, fromStageId)' }, { status: 400 })
     }
 
-    const { id } = params
+    const { id } = await params
 
     // Atualiza a etapa do Deal no DB Real (Fase 2)
     // OBS: O seed do DB pode não ter os mesmos IDs mockados do Zustand. 
