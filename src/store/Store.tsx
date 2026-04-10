@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react'
-import { Contact, Deal, Note, Stage, Tenant, User } from '../types'
+import { Contact, Deal, Note, Stage, Tenant, User, Company, Interaction, Ticket, Task, Order } from '../types'
 import { addContactDb, deleteContactDb, updateContactDb } from '@/actions/contacts'
 import { addDealDb, deleteDealDb, updateDealDb } from '@/actions/deals'
 
@@ -48,6 +48,24 @@ interface StoreContextData {
   addStage: (data: any) => Promise<boolean>
   updateStage: (id: string, updates: Partial<Stage>) => Promise<boolean>
   deleteStage: (id: string) => Promise<boolean>
+  companies: Company[]
+  addCompany: (data: Omit<Company, 'id' | 'createdAt' | 'tenantId'>) => Promise<boolean>
+  updateCompany: (id: string, updates: Partial<Company>) => Promise<boolean>
+  deleteCompany: (id: string) => Promise<boolean>
+  interactions: Interaction[]
+  addInteraction: (data: Omit<Interaction, 'id' | 'createdAt' | 'tenantId'>) => Promise<boolean>
+  tickets: Ticket[]
+  addTicket: (data: Omit<Ticket, 'id' | 'createdAt' | 'tenantId' | 'updatedAt'>) => Promise<boolean>
+  updateTicket: (id: string, updates: Partial<Ticket>) => Promise<boolean>
+  deleteTicket: (id: string) => Promise<boolean>
+  tasks: Task[]
+  addTask: (data: Omit<Task, 'id' | 'createdAt' | 'tenantId' | 'updatedAt'>) => Promise<boolean>
+  updateTask: (id: string, updates: Partial<Task>) => Promise<boolean>
+  deleteTask: (id: string) => Promise<boolean>
+  orders: Order[]
+  addOrder: (data: Omit<Order, 'id' | 'createdAt' | 'tenantId' | 'updatedAt'>) => Promise<boolean>
+  updateOrder: (id: string, updates: Partial<Order>) => Promise<boolean>
+  deleteOrder: (id: string) => Promise<boolean>
   activeTenantId: string | null
   activeUserId: string | null
 }
@@ -63,6 +81,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [stagesStore, setStagesStore] = useState<Stage[]>([])
   const [dealsStore, setDealsStore] = useState<Deal[]>([])
   const [notesStore, setNotesStore] = useState<Note[]>([])
+  const [companiesStore, setCompaniesStore] = useState<Company[]>([])
+  const [interactionsStore, setInteractionsStore] = useState<Interaction[]>([])
+  const [ticketsStore, setTicketsStore] = useState<Ticket[]>([])
+  const [tasksStore, setTasksStore] = useState<Task[]>([])
+  const [ordersStore, setOrdersStore] = useState<Order[]>([])
   const [isHydrating, setIsHydrating] = useState(false)
 
   // -- Hydrate Data whenever a user is active --
@@ -77,6 +100,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setStagesStore(data.stages || [])
         setDealsStore(data.deals || [])
         setNotesStore(data.notes || [])
+        setCompaniesStore(data.companies || [])
+        setInteractionsStore(data.interactions || [])
+        setTicketsStore(data.tickets || [])
+        setTasksStore(data.tasks || [])
+        setOrdersStore(data.orders || [])
         
         // Setup current tenant array if not populated properly
         if (data.currentTenant) {
@@ -104,6 +132,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setDealsStore([])
       setStagesStore([])
       setNotesStore([])
+      setCompaniesStore([])
+      setInteractionsStore([])
+      setTicketsStore([])
+      setTasksStore([])
+      setOrdersStore([])
     }
   }, [activeUserId, fetchData])
 
@@ -118,6 +151,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const stages = useMemo(() => stagesStore.filter((s) => s.tenantId === activeTenantId).sort((a, b) => a.order - b.order), [stagesStore, activeTenantId])
   const deals = useMemo(() => dealsStore.filter((d) => d.tenantId === activeTenantId), [dealsStore, activeTenantId])
   const notes = useMemo(() => notesStore.filter((n) => n.tenantId === activeTenantId), [notesStore, activeTenantId])
+  const companies = useMemo(() => companiesStore.filter((c) => c.tenantId === activeTenantId), [companiesStore, activeTenantId])
+  const interactions = useMemo(() => interactionsStore.filter((i) => i.tenantId === activeTenantId), [interactionsStore, activeTenantId])
+  const tickets = useMemo(() => ticketsStore.filter((t) => t.tenantId === activeTenantId), [ticketsStore, activeTenantId])
+  const tasks = useMemo(() => tasksStore.filter((t) => t.tenantId === activeTenantId), [tasksStore, activeTenantId])
+  const orders = useMemo(() => ordersStore.filter((o) => o.tenantId === activeTenantId), [ordersStore, activeTenantId])
 
   // Login temporário para DB (Substituirá dps por NextAuth)
   const login = async (email: string, password?: string) => {
@@ -293,6 +331,130 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return false // WIP server action
   }, [])
 
+  // --- CRUD COMPANIES ---
+  const addCompany = useCallback(async (data: Omit<Company, 'id' | 'createdAt' | 'tenantId'>) => {
+    if (!activeTenantId) return false
+    const { addCompanyDb } = await import('@/actions/companies')
+    const res = await addCompanyDb(data, activeTenantId)
+    if (res.success && res.data) {
+      setCompaniesStore((prev) => [res.data as unknown as Company, ...prev])
+      return true
+    }
+    return false
+  }, [activeTenantId])
+
+  const updateCompany = useCallback(async (id: string, updates: Partial<Company>) => {
+    setCompaniesStore((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } as Company : c)))
+    const { updateCompanyDb } = await import('@/actions/companies')
+    const res = await updateCompanyDb(id, updates)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  const deleteCompany = useCallback(async (id: string) => {
+    setCompaniesStore((prev) => prev.filter((c) => c.id !== id))
+    const { deleteCompanyDb } = await import('@/actions/companies')
+    const res = await deleteCompanyDb(id)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  // --- CRUD INTERACTIONS ---
+  const addInteraction = useCallback(async (data: Omit<Interaction, 'id' | 'createdAt' | 'tenantId'>) => {
+    if (!activeTenantId) return false
+    const { addInteractionDb } = await import('@/actions/interactions')
+    const res = await addInteractionDb(data, activeTenantId)
+    if (res.success && res.data) {
+      setInteractionsStore((prev) => [res.data as unknown as Interaction, ...prev])
+      return true
+    }
+    return false
+  }, [activeTenantId])
+
+  // --- CRUD TICKETS ---
+  const addTicket = useCallback(async (data: Omit<Ticket, 'id' | 'createdAt' | 'tenantId' | 'updatedAt'>) => {
+    if (!activeTenantId) return false
+    const { addTicketDb } = await import('@/actions/tickets')
+    const res = await addTicketDb(data, activeTenantId)
+    if (res.success && res.data) {
+      setTicketsStore((prev) => [res.data as unknown as Ticket, ...prev])
+      return true
+    }
+    return false
+  }, [activeTenantId])
+
+  const updateTicket = useCallback(async (id: string, updates: Partial<Ticket>) => {
+    setTicketsStore((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } as Ticket : t)))
+    const { updateTicketDb } = await import('@/actions/tickets')
+    const res = await updateTicketDb(id, updates)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  const deleteTicket = useCallback(async (id: string) => {
+    setTicketsStore((prev) => prev.filter((t) => t.id !== id))
+    const { deleteTicketDb } = await import('@/actions/tickets')
+    const res = await deleteTicketDb(id)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  // --- CRUD TASKS ---
+  const addTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt' | 'tenantId' | 'updatedAt'>) => {
+    if (!activeTenantId) return false
+    const { addTaskDb } = await import('@/actions/tasks')
+    const res = await addTaskDb(data, activeTenantId)
+    if (res.success && res.data) {
+      setTasksStore((prev) => [res.data as unknown as Task, ...prev])
+      return true
+    }
+    return false
+  }, [activeTenantId])
+
+  const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
+    setTasksStore((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } as Task : t)))
+    const { updateTaskDb } = await import('@/actions/tasks')
+    const res = await updateTaskDb(id, updates)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  const deleteTask = useCallback(async (id: string) => {
+    setTasksStore((prev) => prev.filter((t) => t.id !== id))
+    const { deleteTaskDb } = await import('@/actions/tasks')
+    const res = await deleteTaskDb(id)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  // --- CRUD ORDERS ---
+  const addOrder = useCallback(async (data: Omit<Order, 'id' | 'createdAt' | 'tenantId' | 'updatedAt'>) => {
+    if (!activeTenantId) return false
+    const { addOrderDb } = await import('@/actions/orders')
+    const res = await addOrderDb(data, activeTenantId)
+    if (res.success && res.data) {
+      setOrdersStore((prev) => [res.data as unknown as Order, ...prev])
+      return true
+    }
+    return false
+  }, [activeTenantId])
+
+  const updateOrder = useCallback(async (id: string, updates: Partial<Order>) => {
+    setOrdersStore((prev) => prev.map((o) => (o.id === id ? { ...o, ...updates } as Order : o)))
+    const { updateOrderDb } = await import('@/actions/orders')
+    const res = await updateOrderDb(id, updates)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
+  const deleteOrder = useCallback(async (id: string) => {
+    setOrdersStore((prev) => prev.filter((o) => o.id !== id))
+    const { deleteOrderDb } = await import('@/actions/orders')
+    const res = await deleteOrderDb(id)
+    if (!res.success) { fetchData(activeUserId!); return false }
+    return true
+  }, [fetchData, activeUserId])
+
   const value = {
     currentUser,
     currentTenant,
@@ -320,6 +482,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateStage,
     deleteStage,
     addNote,
+    companies,
+    addCompany,
+    updateCompany,
+    deleteCompany,
+    interactions,
+    addInteraction,
+    tickets,
+    addTicket,
+    updateTicket,
+    deleteTicket,
+    tasks,
+    addTask,
+    updateTask,
+    deleteTask,
+    orders,
+    addOrder,
+    updateOrder,
+    deleteOrder,
     activeTenantId,
     activeUserId,
   }

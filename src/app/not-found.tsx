@@ -18,8 +18,8 @@ export default function NotFound() {
 
       <div className="relative z-10 text-center p-8 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border-0 max-w-md w-full mx-4 animate-fade-in-up">
         <Image
-          src="/logoGTS.png"
-          alt="GTS Logo"
+          src="/cliente-mattos/logo_mattos.png"
+          alt="Lab Mattos Logo"
           width={48}
           height={48}
           className="mx-auto mb-4 drop-shadow-lg"

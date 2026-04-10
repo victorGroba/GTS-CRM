@@ -15,7 +15,11 @@ import {
   LogOut,
   Menu,
   User,
-  Rocket
+  Rocket,
+  Route,
+  Building2,
+  TicketCheck,
+  ListTodo,
 } from 'lucide-react'
 import { useStore } from '@/store/Store'
 import { UserProfileModal } from '@/components/users/UserProfileModal'
@@ -42,7 +46,11 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
   { title: 'Pipeline', url: '/pipeline', icon: Target },
+  { title: 'JourneyFlow', url: '/journey', icon: Route },
   { title: 'Contatos', url: '/contacts', icon: Users },
+  { title: 'Empresas', url: '/companies', icon: Building2 },
+  { title: 'Tickets', url: '/tickets', icon: TicketCheck },
+  { title: 'Tarefas', url: '/tasks', icon: ListTodo },
   { title: 'Chat', url: '/chat', icon: MessageCircle },
   { title: 'Configurações', url: '/settings', icon: Settings, adminOnly: true },
 ]
@@ -106,15 +114,15 @@ export default function AuthenticatedLayout({
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
               <Image
-                src="/logoGTS.png"
-                alt="GTS Logo"
+                src="/cliente-mattos/logo_mattos.png"
+                alt="Lab Mattos Logo"
                 width={32}
                 height={32}
                 className="drop-shadow-sm"
               />
               <div className="hidden sm:flex flex-col min-w-0">
                 <span className="font-bold text-sm tracking-tight text-foreground leading-tight">
-                  GTS CRM
+                  Lab Mattos CRM
                 </span>
                 <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-[120px]">
                   {currentTenant?.name || 'Gestão de Vendas'}
@@ -200,8 +208,8 @@ export default function AuthenticatedLayout({
               <SheetContent side="right" className="w-[80vw] sm:w-[350px] p-0">
                 <SheetHeader className="p-4 border-b text-left">
                   <SheetTitle className="flex items-center gap-2">
-                    <Image src="/logoGTS.png" alt="GTS Logo" width={24} height={24} />
-                    GTS CRM
+                    <Image src="/cliente-mattos/logo_mattos.png" alt="Lab Mattos Logo" width={24} height={24} />
+                    Lab Mattos CRM
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-1.5 p-4">

@@ -32,8 +32,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-6">
             <Link href="/admin/tenants" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <Image
-                src="/logoGTS.png"
-                alt="GTS Logo"
+                src="/cliente-mattos/logo_mattos.png"
+                alt="Lab Mattos Logo"
                 width={32}
                 height={32}
                 className="relative drop-shadow-sm"

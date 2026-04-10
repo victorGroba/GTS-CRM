@@ -83,7 +83,7 @@ export default function SaaSAdminPage() {
       <div className="flex justify-between items-center bg-card p-6 rounded-xl border border-border/40 shadow-sm">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Gerenciador Master SaaS</h1>
-          <p className="text-muted-foreground mt-1">Visão geral dos perfis de empresas utilizando o GTS CRM.</p>
+          <p className="text-muted-foreground mt-1">Visão geral dos perfis de empresas utilizando o Lab Mattos CRM.</p>
         </div>
         <Button size="lg" className="shadow-lg shadow-primary/20 gap-2" onClick={() => setModalOpen(true)}>
           <Plus className="w-5 h-5" />

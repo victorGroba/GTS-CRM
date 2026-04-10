@@ -3,10 +3,10 @@ import { Providers } from './providers'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'GTS CRM',
+  title: 'Lab Mattos CRM',
   description: 'Sistema SaaS B2B de gestão de vendas',
   icons: {
-    icon: '/fivecon-removebg-preview.ico',
+    icon: '/cliente-mattos/favicon.ico',
   },
 }
 

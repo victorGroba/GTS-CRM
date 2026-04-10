@@ -75,7 +75,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 rounded-2xl opacity-20 blur-xl"
                   style={{ background: 'linear-gradient(135deg, hsl(235, 70%, 45%), hsl(192, 100%, 50%))' }} />
                 <Image
-                  src="/logoGTS.png"
+                  src="/cliente-mattos/logo_mattos.png"
                   alt="GTS Logo"
                   width={64}
                   height={64}
@@ -86,7 +86,7 @@ export default function LoginPage() {
             </div>
             <div>
               <CardTitle className="text-2xl font-bold tracking-tight">
-                <span className="gradient-text">GTS CRM</span>
+                <span className="gradient-text">Lab Mattos CRM</span>
               </CardTitle>
               <CardDescription className="mt-1.5 text-sm">
                 Faça login para acessar o sistema de gestão

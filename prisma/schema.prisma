@@ -19,6 +19,54 @@ enum DealStatus {
   LOST
 }
 
+enum InteractionType {
+  CALL
+  WHATSAPP
+  EMAIL
+  MEETING
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskTrigger {
+  MANUAL
+  LEAD_FRIO
+  FOLLOW_UP
+  POS_VENDA
+  TICKET_ABERTO
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
 model Tenant {
   id        String   @id @default(cuid())
   name      String
@@ -36,6 +84,11 @@ model Tenant {
   notes    Note[]
   messages Message[]
   stageAutomations StageAutomation[]
+  companies    Company[]
+  interactions Interaction[]
+  tickets      Ticket[]
+  tasks        Task[]
+  orders       Order[]
 }
 
 model User {
@@ -50,25 +103,35 @@ model User {
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   deals  Deal[] @relation("AssignedDeals")
+  interactions Interaction[]
+  assignedTickets Ticket[]
+  tasks Task[]
 }
 
 model Contact {
   id        String   @id @default(cuid())
   tenantId  String
+  companyId String?
   name      String
   email     String
   phone     String   @default("")
   company   String   @default("")
   source    String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  deals    Deal[]
-  notes    Note[]
-  messages Message[]
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  companyRef  Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  deals       Deal[]
+  notes       Note[]
+  messages    Message[]
+  interactions Interaction[]
+  tickets     Ticket[]
+  tasks       Task[]
 
   @@unique([tenantId, email])
   @@index([tenantId, phone])
+  @@index([companyId])
 }
 
 model Stage {
@@ -141,4 +204,112 @@ model StageAutomation {
 
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   stage       Stage    @relation(fields: [stageId], references: [id], onDelete: Cascade)
+}
+
+// ==================== NOVOS MODELS B2B 360º ====================
+
+model Company {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  cnpj      String   @default("")
+  segment   String   @default("")
+  revenue   Float    @default(0)
+  phone     String   @default("")
+  email     String   @default("")
+  address   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contacts Contact[]
+  orders   Order[]
+
+  @@unique([tenantId, cnpj])
+  @@index([tenantId])
+}
+
+model Interaction {
+  id        String          @id @default(cuid())
+  tenantId  String
+  contactId String
+  userId    String
+  type      InteractionType
+  notes     String          @default("")
+  sentiment Sentiment       @default(NEUTRAL)
+  duration  Int?
+  createdAt DateTime        @default(now())
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([contactId])
+}
+
+model Ticket {
+  id             String         @id @default(cuid())
+  tenantId       String
+  contactId      String
+  assignedUserId String
+  subject        String
+  description    String         @default("")
+  priority       TicketPriority @default(MEDIUM)
+  status         TicketStatus   @default(OPEN)
+  slaDeadline    DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt @default(now())
+
+  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact  Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignee User    @relation(fields: [assignedUserId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([contactId])
+  @@index([assignedUserId])
+}
+
+model Task {
+  id        String      @id @default(cuid())
+  tenantId  String
+  contactId String?
+  userId    String
+  title     String
+  description String    @default("")
+  dueDate   DateTime?
+  trigger   TaskTrigger @default(MANUAL)
+  status    TaskStatus  @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt @default(now())
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([contactId])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tenantId    String
+  companyId   String?
+  dealId      String?
+  description String      @default("")
+  amount      Float
+  status      OrderStatus @default(PENDING)
+  isRecurring Boolean     @default(false)
+  dueDate     DateTime?
+  paidAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt @default(now())
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([companyId])
 }
