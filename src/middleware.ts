@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { verifyToken } from '@/lib/auth'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip auth for public routes, API webhooks, and static assets
+  // Rotas públicas: login, auth APIs, webhooks e assets estáticos
   if (
     pathname.startsWith('/login') ||
     pathname.startsWith('/api/auth') ||
     pathname.startsWith('/api/webhooks') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon') ||
-    pathname.startsWith('/fivecon') ||
-    pathname.startsWith('/logoGTS') ||
     pathname.endsWith('.png') ||
     pathname.endsWith('.ico') ||
     pathname.endsWith('.svg')
@@ -20,10 +18,23 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check session cookie
-  const userId = request.cookies.get('crm_session_userId')
-  if (!userId) {
+  const token = request.cookies.get('crm_jwt')?.value
+
+  if (!token) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
     return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  const payload = await verifyToken(token)
+  if (!payload) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Sessão expirada ou inválida' }, { status: 401 })
+    }
+    const response = NextResponse.redirect(new URL('/login', request.url))
+    response.cookies.set('crm_jwt', '', { maxAge: 0, path: '/' })
+    return response
   }
 
   return NextResponse.next()

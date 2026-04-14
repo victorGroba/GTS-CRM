@@ -1,30 +1,40 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
+import { signToken } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email obrigatório' }, { status: 400 })
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email e senha obrigatórios' }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    })
+    const user = await prisma.user.findUnique({ where: { email } })
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+      return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
     }
 
-    if (password && user.password !== password) {
-      return NextResponse.json({ error: 'Senha incorreta' }, { status: 401 })
+    const passwordMatch = await bcrypt.compare(password, user.password)
+    if (!passwordMatch) {
+      return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 })
     }
 
-    // Auth Simplificada: Confirma que o user existe e retorna IDs de Sessão
-    return NextResponse.json({ id: user.id, tenantId: user.tenantId, role: user.role })
+    const token = await signToken({ userId: user.id, tenantId: user.tenantId, role: user.role })
+
+    const response = NextResponse.json({ id: user.id, tenantId: user.tenantId, role: user.role })
+    response.cookies.set('crm_jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 dias
+      path: '/',
+    })
+    return response
   } catch (error) {
     console.error('Login error:', error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 })
+    return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 })
   }
 }

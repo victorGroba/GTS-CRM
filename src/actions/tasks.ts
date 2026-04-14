@@ -63,7 +63,7 @@ export async function generateAutoTasks(tenantId: string) {
       include: { deals: { where: { status: 'OPEN' }, include: { assignee: true } } },
     })
 
-    const tasksCreated = []
+    const tasksCreated: Awaited<ReturnType<typeof prisma.task.create>>[] = []
     for (const contact of staleContacts) {
       const assignee = contact.deals[0]?.assignee
       if (!assignee) continue

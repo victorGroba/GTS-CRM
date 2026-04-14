@@ -2,9 +2,14 @@
 
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 export async function updateUserDb(userId: string, updates: Partial<Prisma.UserUpdateInput>) {
   try {
+    // Se a atualização inclui senha, hashear antes de salvar
+    if (typeof updates.password === 'string' && updates.password) {
+      updates.password = await bcrypt.hash(updates.password, 12)
+    }
     const data = await prisma.user.update({
       where: { id: userId },
       data: updates,
@@ -18,12 +23,15 @@ export async function updateUserDb(userId: string, updates: Partial<Prisma.UserU
 
 export async function createUserDb(data: any, tenantId: string) {
   try {
+    const rawPassword = data.password || '123456'
+    const hashedPassword = await bcrypt.hash(rawPassword, 12)
+
     const user = await prisma.user.create({
       data: {
         tenantId,
         name: data.name,
         email: data.email,
-        password: data.password || '123456',
+        password: hashedPassword,
         role: data.role || 'VENDEDOR',
       },
     })

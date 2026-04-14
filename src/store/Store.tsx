@@ -27,7 +27,7 @@ interface StoreContextData {
   isAuthenticated: boolean
   isHydrating: boolean
   login: (email: string, password?: string) => Promise<boolean>
-  logout: () => void
+  logout: () => Promise<void>
   users: User[]
   contacts: Contact[]
   stages: Stage[]
@@ -89,10 +89,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isHydrating, setIsHydrating] = useState(false)
 
   // -- Hydrate Data whenever a user is active --
-  const fetchData = useCallback(async (userId: string) => {
+  const fetchData = useCallback(async (_userId: string) => {
     setIsHydrating(true)
     try {
-      const res = await fetch(`/api/crm/data?userId=${userId}`)
+      const res = await fetch(`/api/crm/data`)
       if (res.ok) {
         const data = await res.json()
         setUsersStore(data.users || [])
@@ -184,7 +184,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return false
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
     setActiveUserId(null)
   }
 

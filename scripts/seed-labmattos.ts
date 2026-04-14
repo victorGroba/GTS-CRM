@@ -1,29 +1,30 @@
 import { PrismaClient, Role } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   const tenantName = "Lab Mattos CRM"
-  
-  // create or find tenant
+
   let tenant = await prisma.tenant.findFirst({
     where: { name: tenantName }
   })
-  
+
   if (!tenant) {
     tenant = await prisma.tenant.create({
       data: {
         name: tenantName,
       }
     })
-    console.log(`Created Tenant: ${tenant.name}`)
+    console.log(`Tenant criado: ${tenant.name}`)
   } else {
-    console.log(`Tenant already exists: ${tenant.name}`)
+    console.log(`Tenant já existe: ${tenant.name}`)
   }
 
-  // create or find user
   const userEmail = "ti@labmattos.com.br"
-  
+  const rawPassword = "Jvfg2409@"
+  const hashedPassword = await bcrypt.hash(rawPassword, 12)
+
   let user = await prisma.user.findUnique({
     where: { email: userEmail }
   })
@@ -33,19 +34,18 @@ async function main() {
       data: {
         email: userEmail,
         name: "Admin",
-        password: "Jvfg2409@",
+        password: hashedPassword,
         role: Role.ADMIN,
         tenantId: tenant.id
       }
     })
-    console.log(`Created User: ${user.email}`)
+    console.log(`Usuário criado: ${user.email}`)
   } else {
-    // update password if it exists
     user = await prisma.user.update({
       where: { email: userEmail },
-      data: { password: "Jvfg2409@" }
+      data: { password: hashedPassword }
     })
-    console.log(`User already exists, updated password: ${user.email}`)
+    console.log(`Senha do usuário atualizada (hash): ${user.email}`)
   }
 }
 
