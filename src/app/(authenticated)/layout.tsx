@@ -20,6 +20,7 @@ import {
   Building2,
   TicketCheck,
   ListTodo,
+  Loader2,
 } from 'lucide-react'
 import { useStore } from '@/store/Store'
 import { UserProfileModal } from '@/components/users/UserProfileModal'
@@ -62,10 +63,17 @@ export default function AuthenticatedLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { currentUser, currentTenant, isAuthenticated, logout } = useStore()
+  const { currentUser, currentTenant, isAuthenticated, isHydrating, activeUserId, logout } = useStore()
   const [profileModalOpen, setProfileModalOpen] = useState(false)
 
   if (!isAuthenticated) {
+    if (isHydrating || activeUserId) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-brand-gradient-light">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )
+    }
     router.push('/login')
     return null
   }

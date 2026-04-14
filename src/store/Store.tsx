@@ -86,13 +86,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [ticketsStore, setTicketsStore] = useState<Ticket[]>([])
   const [tasksStore, setTasksStore] = useState<Task[]>([])
   const [ordersStore, setOrdersStore] = useState<Order[]>([])
-  const [isHydrating, setIsHydrating] = useState(false)
+  // Começa como true se já há um userId salvo no cookie, para evitar redirect prematuro
+  const [isHydrating, setIsHydrating] = useState<boolean>(() => {
+    if (typeof document === 'undefined') return false
+    return !!getCookie('crm_session_userId')
+  })
 
   // -- Hydrate Data whenever a user is active --
   const fetchData = useCallback(async (_userId: string) => {
     setIsHydrating(true)
     try {
       const res = await fetch(`/api/crm/data`)
+      if (res.status === 401) {
+        setActiveUserId(null)
+        return
+      }
       if (res.ok) {
         const data = await res.json()
         setUsersStore(data.users || [])

@@ -27,7 +27,6 @@ export async function POST(request: Request) {
     const response = NextResponse.json({ id: user.id, tenantId: user.tenantId, role: user.role })
     response.cookies.set('crm_jwt', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30, // 30 dias
       path: '/',
